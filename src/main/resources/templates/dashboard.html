@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 40%;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .close {
+            color: red;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .disabled-link {
+            pointer-events: none;
+            color: gray;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="/applications/new"
+       th:classappend="${(isPreviewMode != null ? isPreviewMode : false) or (isApplicationPeriod != null ? isApplicationPeriod : false) ? '' : 'disabled-link'}"
+       onclick="return checkApplicationPeriod();">
+        Başvuru Yap
+    </a>
+    <a href="/applications/my-applications" th:if="${showApply}">Başvurularım</a>
+    <a href="/applications/pending" th:if="${showAllTabs}">Bekleyen Başvurular</a>
+    <a href="/applications/approved" th:if="${showAllTabs}">Onaylanan Başvurular</a>
+    <a href="/applications/rejected" th:if="${showAllTabs}">Reddedilen Başvurular</a>
+    <a href="/applications/settings" th:if="${showAllTabs}">Ayarlar</a>
+</div>
+
+<p>isPreviewMode: <span th:text="${isPreviewMode}"></span></p>
+<p>isApplicationPeriod: <span th:text="${isApplicationPeriod}"></span></p>
+
+<div class="container">
+    <h1>Hoş Geldiniz, <span th:text="${fullName}"></span></h1>
+    <p>Başvurularınızı yönetebilirsiniz.</p>
+</div>
+
+<!-- Hata Mesajı İçin Pop-up -->
+<div id="errorPopup" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closePopup()">&times;</span>
+        <h2>Başvuru Yapılamaz!</h2>
+        <p id="errorMessage">Başvuru dönemi dışında olduğunuz için ilerleyemezsiniz.</p>
+        <button onclick="closePopup()">Tamam</button>
+    </div>
+</div>
+
+<script>
+    function checkApplicationPeriod() {
+        let isApplicationPeriod = /*[[${isApplicationPeriod != null ? isApplicationPeriod : false}]]*/ false;
+        let isPreviewMode = /*[[${isPreviewMode != null ? isPreviewMode : false}]]*/ false;
+
+        console.log("isPreviewMode:", isPreviewMode); // Debug için
+        console.log("isApplicationPeriod:", isApplicationPeriod); // Debug için
+
+        if (!isApplicationPeriod && !isPreviewMode) {
+            document.getElementById("errorMessage").innerText = "Başvurular şu anda kapalıdır. Lütfen belirlenen tarihlerde tekrar deneyin.";
+            document.getElementById("errorPopup").style.display = "block";
+            return false;  // Başvuruyu engelle
+        }
+        return true;  // Kullanıcı başvuruyu yapabilir
+    }
+
+    function closePopup() {
+        document.getElementById("errorPopup").style.display = "none";
+    }
+
+    function redirectToDashboard() {
+        window.location.href = "/dashboard";
+    }
+</script>
+
+</body>
+</html>

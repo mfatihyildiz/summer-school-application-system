@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dışarıdan Alınacak Ders</title>
+
+</head>
+<body>
+<h2>Dışarıdan Alınacak Ders</h2>
+
+<form>
+    <label for="universityName">Üniversite:</label>
+    <select id="universityName" onchange="loadFaculties()" required>
+        <option value="">Bir üniversite seçin</option>
+        <option th:each="name : ${universityNames}" th:value="${name}" th:text="${name}">Üniversite Seç</option>
+    </select>
+
+    <label for="facultyName">Fakülte:</label>
+    <select id="facultyName" onchange="loadDepartments()" required>
+        <option value="">Fakülte Seçin</option>
+    </select>
+
+    <label for="departmentName">Bölüm:</label>
+    <select id="departmentName" onchange="loadCourses()" required>
+        <option value="">Bölüm Seçin</option>
+    </select>
+
+    <label for="courseName">Ders:</label>
+    <select id="courseName" onchange="setExternalCourseId()" required>
+        <option value="">Ders Seçin</option>
+        <option th:each="course : ${courses}"
+                th:value="${course.externalCourseId}"
+                th:text="${course.courseName}">Ders
+        </option>
+    </select>
+</form>
+
+<button onclick="document.getElementById('addCourseForm').style.display='block'">Ders Ekle</button>
+<div id="addCourseForm" style="display:none;">
+    <h3>Yeni Ders Bilgileri</h3>
+
+    <label for="newUniversityName">Üniversite:</label>
+    <select id="newUniversityName" name="newUniversityName" onchange="loadNewFaculties()" required>
+        <option value="">Bir üniversite seçin</option>
+        <option th:each="name : ${universityNames}"
+                th:value="${name}"
+                th:text="${name}">Üniversite Seç
+        </option>
+    </select><br>
+
+    <label for="newFacultyName">Fakülte:</label>
+    <select id="newFacultyName" name="newFacultyName" onchange="loadNewDepartments()" required>
+        <option value="">Fakülte Seçin</option>
+    </select><br>
+
+    <label for="newDepartmentName">Bölüm:</label>
+    <select id="newDepartmentName" name="newDepartmentName" required>
+        <option value="">Bölüm Seçin</option>
+    </select><br>
+
+    <label for="newCourseName">Ders Adı:</label>
+    <input type="text" id="newCourseName" required><br>
+
+    <label for="newCourseEcts">ECTS:</label>
+    <input type="number" id="newCourseEcts" required><br>
+
+    <label for="newCourseLanguage">Dil:</label>
+    <select id="newCourseLanguage" required>
+        <option value="TURKISH">Türkçe</option>
+        <option value="ENGLISH">İngilizce</option>
+    </select><br>
+
+    <label for="newCourseTheoreticalHours">Teorik Saat:</label>
+    <input type="number" id="newCourseTheoreticalHours" required><br>
+
+    <label for="newCoursePracticalHours">Pratik Saat:</label>
+    <input type="number" id="newCoursePracticalHours" required><br>
+
+    <label for="newCourseDescription">Açıklama:</label>
+    <textarea id="newCourseDescription" required></textarea><br>
+
+    <button type="button" onclick="addNewCourse()">Dersi Ekle</button>
+    <button type="button" onclick="document.getElementById('addCourseForm').style.display='none'">İptal</button>
+</div>
+
+<!-- Devam Et Tuşu -->
+<form id="applicationForm" th:action="@{/applications/set-external-course}" method="post">
+    <input type="hidden" id="homeCourseId" name="homeCourseId" th:value="${homeCourseId}"/>
+    <input type="hidden" id="externalCourseId" name="externalCourseId"/>
+    <button type="button" onclick="redirectToConfirmation()">Devam Et</button>
+</form>
+</body>
+</html>
+
+<script>
+    async function fetchOptions(endpoint, params = {}) {
+        const url = new URL(endpoint, window.location.origin);
+        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        const response = await fetch(url);
+        return response.json();
+    }
+
+    async function loadFaculties() {
+        const universityName = document.getElementById('universityName').value;
+
+        // Üniversite değiştiğinde fakülte, bölüm ve ders dropdown'larını sıfırla
+        const facultySelect = document.getElementById('facultyName');
+        const departmentSelect = document.getElementById('departmentName');
+        const courseSelect = document.getElementById('courseName');
+
+        facultySelect.innerHTML = '<option value="">Fakülte Seçin</option>';
+        departmentSelect.innerHTML = '<option value="">Bölüm Seçin</option>';
+        courseSelect.innerHTML = '<option value="">Ders Seçin</option>';
+
+        // Fakülteleri yükle
+        if (universityName) {
+            const faculties = await fetchOptions('/university/faculties', {universityName});
+            faculties.forEach(faculty => {
+                const option = document.createElement('option');
+                option.value = faculty;
+                option.textContent = faculty;
+                facultySelect.appendChild(option);
+            });
+        }
+    }
+
+    async function loadDepartments() {
+        const universityName = document.getElementById('universityName').value;
+        const facultyName = document.getElementById('facultyName').value;
+
+        // Fakülte değiştiğinde bölüm ve ders dropdown'larını sıfırla
+        const departmentSelect = document.getElementById('departmentName');
+        const courseSelect = document.getElementById('courseName');
+
+        departmentSelect.innerHTML = '<option value="">Bölüm Seçin</option>';
+        courseSelect.innerHTML = '<option value="">Ders Seçin</option>';
+
+        // Bölümleri yükle
+        if (universityName && facultyName) {
+            const departments = await fetchOptions('/university/departments', {universityName, facultyName});
+            departments.forEach(department => {
+                const option = document.createElement('option');
+                option.value = department;
+                option.textContent = department;
+                departmentSelect.appendChild(option);
+            });
+        }
+    }
+
+    async function loadCourses() {
+        const universityName = document.getElementById('universityName').value;
+        const facultyName = document.getElementById('facultyName').value;
+        const departmentName = document.getElementById('departmentName').value;
+
+        // Ders dropdown'ını sıfırla
+        const courseSelect = document.getElementById('courseName');
+        courseSelect.innerHTML = '<option value="">Ders Seçin</option>';
+
+        // Dersleri yükle
+        if (universityName && facultyName && departmentName) {
+            try {
+                const response = await fetch(`/external/courses?universityName=${encodeURIComponent(universityName)}&facultyName=${encodeURIComponent(facultyName)}&departmentName=${encodeURIComponent(departmentName)}`);
+
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    alert(errorMessage);
+                    return;
+                }
+
+                const courses = await response.json();
+
+                courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    courseSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                alert('Dersler yüklenirken bir hata oluştu.');
+            }
+        } else {
+            alert("Lütfen üniversite, fakülte ve bölüm seçiniz.");
+        }
+    }
+
+    async function loadNewFaculties() {
+        const universityName = document.getElementById('newUniversityName').value;
+
+        const facultySelect = document.getElementById('newFacultyName');
+        const departmentSelect = document.getElementById('newDepartmentName');
+
+        facultySelect.innerHTML = '<option value="">Fakülte Seçin</option>';
+        departmentSelect.innerHTML = '<option value="">Bölüm Seçin</option>';
+
+        if (universityName) {
+            const faculties = await fetchOptions('/university/faculties', {universityName});
+            faculties.forEach(faculty => {
+                const option = document.createElement('option');
+                option.value = faculty;
+                option.textContent = faculty;
+                facultySelect.appendChild(option);
+            });
+        }
+    }
+
+    async function loadNewDepartments() {
+        const universityName = document.getElementById('newUniversityName').value;
+        const facultyName = document.getElementById('newFacultyName').value;
+
+        const departmentSelect = document.getElementById('newDepartmentName');
+        departmentSelect.innerHTML = '<option value="">Bölüm Seçin</option>';
+
+        if (universityName && facultyName) {
+            const departments = await fetchOptions('/university/departments', {universityName, facultyName});
+            departments.forEach(department => {
+                const option = document.createElement('option');
+                option.value = department;
+                option.textContent = department;
+                departmentSelect.appendChild(option);
+            });
+        }
+    }
+
+    async function addNewCourse() {
+        const universityName = document.getElementById('newUniversityName').value; // Dropdown'dan gelen
+        const facultyName = document.getElementById('newFacultyName').value; // Dropdown'dan gelen
+        const departmentName = document.getElementById('newDepartmentName').value; // Dropdown'dan gelen
+        const courseName = document.getElementById('newCourseName').value.trim(); // Kullanıcıdan gelen
+        const ects = document.getElementById('newCourseEcts').value.trim(); // Kullanıcıdan gelen
+        const language = document.getElementById('newCourseLanguage').value.trim(); // Kullanıcıdan gelen
+        const theoreticalHours = document.getElementById('newCourseTheoreticalHours').value.trim(); // Kullanıcıdan gelen
+        const practicalHours = document.getElementById('newCoursePracticalHours').value.trim(); // Kullanıcıdan gelen
+        const description = document.getElementById('newCourseDescription').value.trim(); // Kullanıcıdan gelen
+
+        if (!universityName || !facultyName || !departmentName || !courseName) {
+            alert("Lütfen tüm alanları doldurun.");
+            return;
+        }
+
+        // University ID'yi al
+        const responseUniversity = await fetch(`/university/find-id?universityName=${encodeURIComponent(universityName)}`);
+        const universityId = responseUniversity.ok ? await responseUniversity.json() : null;
+        alert(universityId);
+
+        if (!universityId) {
+            alert("Üniversite bulunamadı!");
+            return;
+        }
+
+        // newCourse nesnesini oluştur
+        const newCourse = {
+            university: {
+                universityName: universityName,
+                facultyName: facultyName,
+                departmentName: departmentName
+            },
+            courseName: courseName,
+            ects: ects,
+            language: language,
+            theoreticalHours: theoreticalHours,
+            practicalHours: practicalHours,
+            description: description
+        };
+
+        try {
+            // API'ye gönder
+            const response = await fetch('/external/add-course', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(newCourse)
+            });
+
+            if (response.ok) {
+                alert('Ders başarıyla eklendi!');
+                location.reload(); // Sayfayı yenile
+            } else {
+                const error = await response.text();
+                alert('Ders eklenirken bir hata oluştu: ' + error);
+            }
+        } catch (error) {
+            console.error("Ders eklerken hata:", error);
+            alert("Bir hata oluştu.");
+        }
+    }
+
+    async function fetchExternalCourseId() {
+        const universityName = document.getElementById('universityName').value.trim();
+        const facultyName = document.getElementById('facultyName').value.trim();
+        const departmentName = document.getElementById('departmentName').value.trim();
+        const courseName = document.getElementById('courseName').value.trim();
+
+        if (!universityName || !facultyName || !departmentName || !courseName) {
+            alert("Lütfen tüm alanları doldurun.");
+            return null;
+        }
+
+        try {
+            // API'den ExternalCourseId'yi al
+            const response = await fetch(`/applications/external-course-id?universityName=${encodeURIComponent(universityName)}&facultyName=${encodeURIComponent(facultyName)}&departmentName=${encodeURIComponent(departmentName)}&courseName=${encodeURIComponent(courseName)}`);
+            if (response.ok) {
+                const externalCourseId = await response.json();
+                console.log("ExternalCourseId:", externalCourseId);
+                return externalCourseId;
+            } else {
+                alert("Ders bulunamadı.");
+                return null;
+            }
+        } catch (error) {
+            console.error("ExternalCourseId alırken hata:", error);
+            alert("Bir hata oluştu.");
+            return null;
+        }
+    }
+
+    async function redirectToConfirmation() {
+        const externalCourseId = await fetchExternalCourseId(); // API çağrısı ile externalCourseId'yi al
+        if (!externalCourseId) {
+            alert("Lütfen gerekli tüm seçimleri yapın.");
+            return;
+        }
+
+        // externalCourseId'yi input alanına yaz
+        document.getElementById("externalCourseId").value = externalCourseId;
+
+        // Formu gönder
+        document.getElementById("applicationForm").submit();
+    }
+
+    document.getElementById('courseName').addEventListener('change', function () {
+        const externalCourseId = this.value;
+        document.getElementById('externalCourseId').value = externalCourseId;
+    });
+
+    function setExternalCourseId() {
+        const selectedCourseId = document.getElementById('courseName').value;
+        document.getElementById('externalCourseId').value = selectedCourseId;
+    }
+</script>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Onay Sayfası</title>
+</head>
+<body>
+<h2>Seçilen Dersler</h2>
+
+<!-- Hata Mesajı Gösterme -->
+<div th:if="${errorMessage}" style="color: red; font-weight: bold;">
+    <p th:text="${errorMessage}"></p>
+    <button onclick="window.history.back()">Geri Dön</button>
+</div>
+<div th:if="${errorMessage == null}">
+    <!-- HomeCourse Bilgileri -->
+    <h3>HomeCourse Bilgileri</h3>
+    <p><strong>Ders Adı:</strong> <span th:text="${homeCourse?.courseName}"></span></p>
+    <p><strong>ECTS:</strong> <span th:text="${homeCourse?.ects}"></span></p>
+    <p><strong>Dil:</strong> <span th:text="${homeCourse?.language}"></span></p>
+
+    <!-- ExternalCourse Bilgileri -->
+    <h3>ExternalCourse Bilgileri</h3>
+    <p><strong>Ders Adı:</strong> <span th:text="${externalCourse?.courseName}"></span></p>
+    <p><strong>ECTS:</strong> <span th:text="${externalCourse?.ects}"></span></p>
+    <p><strong>Dil:</strong> <span th:text="${externalCourse?.language}"></span></p>
+
+    <!-- Onay Butonu -->
+    <form method="post" th:action="@{/applications/submit}" onsubmit="return validateEcts()">
+        <input type="hidden" name="homeCourseId" th:value="${homeCourse?.homeCourseId}"/>
+        <input type="hidden" name="externalCourseId" th:value="${externalCourse?.externalCourseId}"/>
+        <input type="hidden" name="studentId" th:value="${studentId}"/>
+
+        <p><strong>HomeCourse AKTS:</strong> <span id="homeCourseEcts" th:text="${homeCourse.ects}"></span></p>
+        <p><strong>ExternalCourse AKTS:</strong> <span id="externalCourseEcts" th:text="${externalCourse.ects}"></span>
+        </p>
+
+        <button type="submit">Başvuruyu Onayla</button>
+    </form>
+</div>
+<p th:if="${errorMessage}" style="color:red;" th:text="${errorMessage}"></p>
+<p th:if="${errorMessage}" style="color:red;" th:text="${errorMessage}"></p>
+
+
+</body>
+</html>
+
+<script>
+    function validateEcts() {
+        const homeCourseEcts = parseInt(document.getElementById('homeCourseEcts').textContent, 10);
+        const externalCourseEcts = parseInt(document.getElementById('externalCourseEcts').textContent, 10);
+        const homeCourseLanguage = document.getElementById("homeCourseLanguage").value;
+        const externalCourseLanguage = document.getElementById("externalCourseLanguage").value;
+
+
+        //AKTS kontrolü
+        if (externalCourseEcts < homeCourseEcts) {
+            alert("Dışarıdan alınacak dersin AKTS değeri, seçilen HomeCourse'un AKTS değerine eşit veya daha büyük olmalıdır.");
+            return false;
+        }
+
+        //Dil Kontrolü
+        if (homeCourseLanguage !== externalCourseLanguage) {
+            alert("Seçilen derslerin eğitim dili aynı olmalıdır.");
+            return false;
+        }
+
+        return true;
+    }
+</script>

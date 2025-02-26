@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Yeni Başvuru - Üniversite Dersi Seçimi</title>
+  <style>
+    /* Pop-up Stil */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 40%;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+    }
+
+    .close {
+      color: red;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .info-message {
+      color: #d9534f;
+      font-weight: bold;
+    }
+
+    .disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Yeni Başvuru - Üniversite Dersi Seçimi</h2>
+
+<!-- Ön İzleme Dönemi Bilgilendirmesi -->
+<p class="info-message" th:if="${previewMode}">
+  Şu anda sadece dersleri görüntüleyebilirsiniz. Başvuru süreci henüz başlamadı.
+</p>
+
+<!-- Hata Mesajı İçin Pop-up -->
+<div id="errorPopup" class="modal" th:if="${showErrorPopup}">
+  <div class="modal-content">
+    <span class="close" onclick="closePopup()">&times;</span>
+    <h2>Başvuru Yapılamaz!</h2>
+    <p th:text="${errorMessage}">Başvuru dönemi dışında olduğunuz için ilerleyemezsiniz.</p>
+    <button onclick="redirectToDashboard()">Tamam</button>
+  </div>
+</div>
+
+<form th:action="@{/applications/step2}" method="post" id="homeCourseSelectionForm">
+  <!-- HomeCourse Dropdown -->
+  <label for="homeCourseId">Seçilen Üniversite Dersi (HomeCourse):</label>
+  <select id="homeCourseId" name="selectedCourseId" required>
+    <option value="" disabled selected>Bir ders seçin</option>
+    <option th:each="course : ${homeCourses}"
+            th:value="${course.homeCourseId}"
+            th:text="${course.courseName}"></option>
+  </select>
+  <br/>
+
+  <!-- Devam Et Tuşu -->
+  <button type="submit" id="continueButton"
+          th:disabled="${previewMode}"
+          th:classappend="${previewMode} ? 'disabled' : ''"
+          onclick="checkApplicationPeriod(event)">
+    Devam Et
+  </button>
+</form>
+
+<script>
+  function checkApplicationPeriod(event) {
+    let isPreviewMode = /*[[${previewMode}]]*/ false;
+
+    if (isPreviewMode) {
+      event.preventDefault(); // Formun gönderilmesini engelle
+      alert("Şu anda sadece dersleri görüntüleyebilirsiniz. Başvuru süreci henüz başlamadı.");
+    }
+  }
+
+  function closePopup() {
+    document.getElementById("errorPopup").style.display = "none";
+  }
+
+  function redirectToDashboard() {
+    window.location.href = "/dashboard";
+  }
+
+  window.onload = function() {
+    let showErrorPopup = /*[[${showErrorPopup}]]*/ false;
+    if (showErrorPopup) {
+      document.getElementById("errorPopup").style.display = "block";
+    }
+  };
+</script>
+
+</body>
+</html>

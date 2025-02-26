@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Onaylanmış Başvurular</title>
+  <style>
+    /* Genel stil ayarları */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 60%;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+    }
+
+    .close {
+      color: red;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .details-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding: 10px;
+    }
+
+    .column {
+      width: 45%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .general-info {
+      margin-top: 20px;
+      padding: 10px;
+      border-top: 2px solid #ddd;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Onaylanmış Başvurular</h1>
+
+<table border="1">
+  <thead>
+  <tr>
+    <th>Home Course</th>
+    <th>External Course</th>
+    <th>Durum</th>
+    <th>Başvuru Tarihi</th>
+    <th>Detaylar</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="app : ${approvedApplications}">
+    <td th:text="${app.homeCourse.courseName}"></td>
+    <td th:text="${app.externalCourse.courseName}"></td>
+    <td th:text="${app.status}"></td>
+    <td th:text="${app.submissionDate}"></td>
+    <td>
+      <button onclick="showDetails(this)"
+              th:data-application-id="${app.applicationId}"
+              th:data-home-course="${app.homeCourse.courseName}"
+              th:data-home-ects="${app.homeCourse.ects}"
+              th:data-home-language="${app.homeCourse.language}"
+              th:data-home-description="${app.homeCourse.description}"
+
+              th:data-external-course="${app.externalCourse.courseName}"
+              th:data-external-ects="${app.externalCourse.ects}"
+              th:data-external-language="${app.externalCourse.language}"
+              th:data-external-description="${app.externalCourse.description}"
+              th:data-external-faculty="${app.externalCourse.university.facultyName}"
+              th:data-external-department="${app.externalCourse.university.departmentName}"
+              th:data-external-university="${app.externalCourse.university.universityName}"
+
+              th:data-status="${app.status}"
+              th:data-submission-date="${app.submissionDate}">
+        Detayları Göster
+      </button>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<!-- Detay Pop-up -->
+<div id="detailsPopup" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closePopup()">&times;</span>
+    <h2>Başvuru Detayları</h2>
+
+    <div class="details-container">
+      <div class="column">
+        <h3>Home Course</h3>
+        <p><strong>Kurs Adı:</strong> <span id="popupHomeCourse"></span></p>
+        <p><strong>ECTS:</strong> <span id="popupHomeEcts"></span></p>
+        <p><strong>Dil:</strong> <span id="popupHomeLanguage"></span></p>
+        <p><strong>Ders İçeriği:</strong> <span id="popupHomeDescription"></span></p>
+      </div>
+
+      <div class="column">
+        <h3>External Course</h3>
+        <p><strong>Kurs Adı:</strong> <span id="popupExternalCourse"></span></p>
+        <p><strong>ECTS:</strong> <span id="popupExternalEcts"></span></p>
+        <p><strong>Dil:</strong> <span id="popupExternalLanguage"></span></p>
+        <p><strong>Ders İçeriği:</strong> <span id="popupExternalDescription"></span></p>
+        <p><strong>Üniversite:</strong> <span id="popupExternalUniversity"></span></p>
+        <p><strong>Fakülte:</strong> <span id="popupExternalFaculty"></span></p>
+        <p><strong>Bölüm:</strong> <span id="popupExternalDepartment"></span></p>
+      </div>
+    </div>
+
+    <hr>
+    <p><strong>Durum:</strong> <span id="popupStatus"></span></p>
+    <p><strong>Başvuru Tarihi:</strong> <span id="popupSubmissionDate"></span></p>
+
+    <button id="rejectButton" onclick="confirmRejection()">Reddet</button>
+  </div>
+</div>
+
+<script>
+  function showDetails(button) {
+    document.getElementById("popupHomeCourse").innerText = button.getAttribute("data-home-course");
+    document.getElementById("popupHomeEcts").innerText = button.getAttribute("data-home-ects");
+    document.getElementById("popupHomeLanguage").innerText = button.getAttribute("data-home-language");
+    document.getElementById("popupHomeDescription").innerText = button.getAttribute("data-home-description");
+
+    document.getElementById("popupExternalCourse").innerText = button.getAttribute("data-external-course");
+    document.getElementById("popupExternalEcts").innerText = button.getAttribute("data-external-ects");
+    document.getElementById("popupExternalLanguage").innerText = button.getAttribute("data-external-language");
+    document.getElementById("popupExternalDescription").innerText = button.getAttribute("data-external-description");
+    document.getElementById("popupExternalFaculty").innerText = button.getAttribute("data-external-faculty");
+    document.getElementById("popupExternalDepartment").innerText = button.getAttribute("data-external-department");
+    document.getElementById("popupExternalUniversity").innerText = button.getAttribute("data-external-university");
+
+    document.getElementById("popupStatus").innerText = button.getAttribute("data-status");
+    document.getElementById("popupSubmissionDate").innerText = button.getAttribute("data-submission-date");
+
+    document.getElementById("rejectButton").setAttribute("data-application-id", button.getAttribute("data-application-id"));
+
+    document.getElementById("detailsPopup").style.display = "block";
+  }
+
+  function closePopup() {
+    document.getElementById("detailsPopup").style.display = "none";
+  }
+
+  function confirmRejection() {
+    let applicationId = document.getElementById("rejectButton").getAttribute("data-application-id");
+
+    if (confirm("Bu başvuruyu reddetmek istediğinizden emin misiniz?")) {
+      let form = document.createElement("form");
+      form.method = "post";
+      form.action = "/applications/reject-approved/" + applicationId;
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+</script>
+
+</body>
+</html>
