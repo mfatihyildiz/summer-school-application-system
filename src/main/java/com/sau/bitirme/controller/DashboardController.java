@@ -22,7 +22,7 @@ public class DashboardController {
     private ApplicationPeriodService applicationPeriodService;
 
     @GetMapping("/dashboard")
-    public String dashboard(HttpSession session, Model model) {
+    public String dashboard(final HttpSession session, final Model model) {
         String username = (String) session.getAttribute("username");
         String role = (String) session.getAttribute("role");
 
@@ -59,5 +59,4 @@ public class DashboardController {
 
         return "dashboard";
     }
-
 }

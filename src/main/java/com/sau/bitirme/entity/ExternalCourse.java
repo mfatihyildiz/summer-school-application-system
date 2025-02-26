@@ -8,11 +8,9 @@ public class ExternalCourse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long externalCourseId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "studentId", nullable = false)
     private Student student;
-
     private String courseName;
     private int ects;
     @Enumerated(EnumType.STRING)
@@ -92,6 +90,4 @@ public class ExternalCourse {
     public void setDescription(String description) {
         this.description = description;
     }
-
-// Getters and Setters
 }

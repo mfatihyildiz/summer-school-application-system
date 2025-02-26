@@ -27,14 +27,15 @@ public class StudentTest {
     @Test
     public void addStudent() {
         Student student = new Student();
-        student.setName("Fatih");
+        student.setName("2");
         student.setSurname("Yıldız");
-        student.setEmail("fatih@gmail.com");
-        student.setPassword("123");
+        student.setEmail("222@gmail.com");
+        student.setPassword("222");
         student.setSemester(Semester.SPRING);
-        student.setEducationYear(EducationYear.FOURTH);
-        student.setGpa(2.6);
-        student.setStudentNumber("123");
+        student.setEducationYear(EducationYear.SECOND);
+        student.setGpa(2.4);
+        student.setStudentNumber("222");
+
 
         studentRepo.save(student);
     }

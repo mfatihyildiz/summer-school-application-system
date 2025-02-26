@@ -2,6 +2,7 @@ package com.sau.bitirme.entity;
 
 import com.sau.bitirme.enums.ApplicationStatus;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
 @Entity
@@ -23,12 +24,11 @@ public class Application {
     private ExternalCourse externalCourse;
 
     @Enumerated(EnumType.STRING)
-    private ApplicationStatus status =ApplicationStatus.PENDING;
+    private ApplicationStatus status = ApplicationStatus.PENDING;
 
-    private LocalDate submissionDate = LocalDate.now(); // Varsayılan olarak o anki tarih
+    private LocalDate submissionDate = LocalDate.now();
 
     // Getters and Setters
-
     public Long getApplicationId() {
         return applicationId;
     }
@@ -72,7 +72,5 @@ public class Application {
     public void setSubmissionDate(LocalDate submissionDate) {
         this.submissionDate = submissionDate;
     }
-
-    // Getters and Setters
 }
 

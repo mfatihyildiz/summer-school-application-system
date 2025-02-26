@@ -38,21 +38,11 @@
       color: #d9534f;
       font-weight: bold;
     }
-
-    .disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
   </style>
 </head>
 <body>
 
 <h2>Yeni Başvuru - Üniversite Dersi Seçimi</h2>
-
-<!-- Ön İzleme Dönemi Bilgilendirmesi -->
-<p class="info-message" th:if="${previewMode}">
-  Şu anda sadece dersleri görüntüleyebilirsiniz. Başvuru süreci henüz başlamadı.
-</p>
 
 <!-- Hata Mesajı İçin Pop-up -->
 <div id="errorPopup" class="modal" th:if="${showErrorPopup}">
@@ -64,24 +54,20 @@
   </div>
 </div>
 
-<form th:action="@{/applications/step2}" method="post" id="homeCourseSelectionForm">
-  <!-- HomeCourse Dropdown -->
-  <label for="homeCourseId">Seçilen Üniversite Dersi (HomeCourse):</label>
-  <select id="homeCourseId" name="selectedCourseId" required>
+<p th:if="${previewMode}" class="info-message">
+  Şu anda sadece dersleri görüntüleyebilirsiniz. Başvuru süreci henüz başlamadı.
+</p>
+
+<form th:action="@{/applications/step2}" method="post">
+  <label for="homeCourseId">Seçilen Üniversite Dersi:</label>
+  <select id="homeCourseId" name="selectedCourseId" required th:disabled="${previewMode}">
     <option value="" disabled selected>Bir ders seçin</option>
     <option th:each="course : ${homeCourses}"
             th:value="${course.homeCourseId}"
             th:text="${course.courseName}"></option>
   </select>
   <br/>
-
-  <!-- Devam Et Tuşu -->
-  <button type="submit" id="continueButton"
-          th:disabled="${previewMode}"
-          th:classappend="${previewMode} ? 'disabled' : ''"
-          onclick="checkApplicationPeriod(event)">
-    Devam Et
-  </button>
+  <button type="submit" th:disabled="${previewMode}">Devam Et</button>
 </form>
 
 <script>

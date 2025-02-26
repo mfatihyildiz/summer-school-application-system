@@ -43,6 +43,4 @@ public class Committee {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    // Getters and Setters
 }

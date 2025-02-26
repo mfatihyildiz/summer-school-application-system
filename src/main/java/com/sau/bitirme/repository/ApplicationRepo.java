@@ -14,5 +14,4 @@ public interface ApplicationRepo extends JpaRepository<Application, Long> {
     List<Application> findByStudent_StudentId(Long studentId);
 
     List<Application> findByStatus(ApplicationStatus status);
-
 }

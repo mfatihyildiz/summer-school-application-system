@@ -22,7 +22,7 @@ public class SettingsController {
 
     // **Ayarlar sayfasını yükle**
     @GetMapping("/settings")
-    public String showSettingsPage(Model model) {
+    public String showSettingsPage(final Model model) {
         // **En son eklenen kaydı getir**
         ApplicationPeriod latestPeriod = applicationPeriodRepo.findTopByOrderByIdDesc().orElse(new ApplicationPeriod());
         model.addAttribute("currentPeriod", latestPeriod);
@@ -31,12 +31,8 @@ public class SettingsController {
 
     // **Yeni tarihleri kaydetme işlemi**
     @PostMapping("/settings/update-period")
-    public String updateApplicationPeriod(
-            @RequestParam("previewStart") String previewStart,
-            @RequestParam("previewEnd") String previewEnd,
-            @RequestParam("applyStart") String applyStart,
-            @RequestParam("applyEnd") String applyEnd,
-            Model model) {
+    public String updateApplicationPeriod(final @RequestParam("previewStart") String previewStart, final @RequestParam("previewEnd") String previewEnd,
+                                          final @RequestParam("applyStart") String applyStart, final @RequestParam("applyEnd") String applyEnd, final Model model) {
 
         try {
             // **Tarihleri LocalDateTime formatına çevir**
@@ -52,15 +48,8 @@ public class SettingsController {
             newPeriod.setApplicationStartDate(applicationStartDate);
             newPeriod.setApplicationEndDate(applicationEndDate);
 
-            // **LOG: Database'e kayıt işlemi öncesi**
-            System.out.println("💾 Database'e kayıt yapılıyor...");
-
             // **Kaydı veritabanına ekleyelim**
             applicationPeriodRepo.save(newPeriod);
-
-            // **LOG: Kayıt başarılı mesajı**
-            System.out.println("✅ Yeni başvuru dönemi başarıyla kaydedildi!");
-
             model.addAttribute("successMessage", "Başvuru tarihleri başarıyla eklendi!");
 
         } catch (Exception e) {
@@ -68,7 +57,6 @@ public class SettingsController {
             model.addAttribute("errorMessage", "Tarih formatı hatalı! Lütfen doğru formatta girin.");
             System.out.println("HATA! Tarih eklenemedi.");
         }
-
         return "settings";
     }
 }

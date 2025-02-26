@@ -10,5 +10,4 @@ public interface CommitteeRepo extends JpaRepository<Committee, Long> {
     Committee findByEmail(String email);
 
     Committee findByEmailAndPassword(String Email, String password);
-    // custom queries
 }

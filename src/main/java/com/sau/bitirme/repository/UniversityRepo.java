@@ -4,6 +4,7 @@ import com.sau.bitirme.entity.University;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +20,6 @@ public interface UniversityRepo extends JpaRepository<University, Long> {
     List<String> findDistinctDepartmentsByFacultyAndUniversity(@Param("universityName") String universityName, @Param("facultyName") String facultyName);
 
     Optional<University> findByUniversityNameAndFacultyNameAndDepartmentName(String universityName, String facultyName, String departmentName);
+
     Optional<University> findByUniversityName(String universityName);
-
-
 }

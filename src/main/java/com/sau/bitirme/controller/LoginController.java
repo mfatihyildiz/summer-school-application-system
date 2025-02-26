@@ -17,7 +17,6 @@ public class LoginController {
 
     @Autowired
     private StudentRepo studentRepo;
-
     @Autowired
     private CommitteeRepo committeeRepo;
 
@@ -27,7 +26,9 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, HttpSession session, Model model) {
+    public String login(final @RequestParam String username, final @RequestParam String password,
+                        final HttpSession session, final Model model) {
+
         // Öğrenci olarak giriş yapmayı kontrol et
         Student student = studentRepo.findByStudentNumberAndPassword(username, password);
         if (student != null) {

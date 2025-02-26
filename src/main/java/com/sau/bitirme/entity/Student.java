@@ -3,6 +3,7 @@ package com.sau.bitirme.entity;
 import com.sau.bitirme.enums.Semester;
 import com.sau.bitirme.enums.EducationYear;
 import jakarta.persistence.*;
+
 import java.util.List;
 
 @Entity
@@ -16,7 +17,7 @@ public class Student {
     private String name;
     @Column(nullable = false)
     private String surname;
-    @Column(unique = true,nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
     @Column(nullable = false)
     private String password;

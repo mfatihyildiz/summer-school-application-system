@@ -23,17 +23,17 @@ public class UniversityController {
     }
 
     @GetMapping("/faculties")
-    public List<String> getFaculties(@RequestParam String universityName) {
+    public List<String> getFaculties(final @RequestParam String universityName) {
         return universityRepo.findDistinctFacultyNamesByUniversityName(universityName);
     }
 
     @GetMapping("/departments")
-    public List<String> getDepartments(@RequestParam String universityName, @RequestParam String facultyName) {
+    public List<String> getDepartments(final @RequestParam String universityName, final @RequestParam String facultyName) {
         return universityRepo.findDistinctDepartmentsByFacultyAndUniversity(universityName, facultyName);
     }
 
     @GetMapping("/find-id")
-    public ResponseEntity<Long> getUniversityId(@RequestParam String universityName) {
+    public ResponseEntity<Long> getUniversityId(final @RequestParam String universityName) {
         University university = universityRepo.findByUniversityName(universityName)
                 .orElseThrow(() -> new RuntimeException("University not found"));
         return ResponseEntity.ok(university.getUniversityId());

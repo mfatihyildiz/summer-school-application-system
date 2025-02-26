@@ -1,6 +1,7 @@
 package com.sau.bitirme.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -9,7 +10,6 @@ public class ApplicationPeriod {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private LocalDateTime previewStartDate;
     private LocalDateTime previewEndDate;
     private LocalDateTime applicationStartDate;

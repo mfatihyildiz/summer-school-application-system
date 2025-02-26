@@ -2,6 +2,7 @@ package com.sau.bitirme.controller;
 
 import com.sau.bitirme.entity.*;
 import com.sau.bitirme.enums.ApplicationStatus;
+import com.sau.bitirme.enums.EducationYear;
 import com.sau.bitirme.repository.*;
 import com.sau.bitirme.service.ApplicationPeriodService;
 import jakarta.servlet.http.HttpSession;
@@ -20,7 +21,6 @@ public class ApplicationController {
 
     @Autowired
     private ApplicationRepo applicationRepo;
-
     @Autowired
     private HomeCourseRepo homeCourseRepo;
     @Autowired
@@ -33,7 +33,7 @@ public class ApplicationController {
     private ApplicationPeriodService applicationPeriodService;
 
     @GetMapping("/new")
-    public String showNewApplicationPage(Model model, HttpSession session) {
+    public String showNewApplicationPage(final Model model, final HttpSession session) {
         String studentNumber = (String) session.getAttribute("username");
 
         if (studentNumber == null) {
@@ -54,26 +54,46 @@ public class ApplicationController {
 
         if (isPreviewMode) {
             model.addAttribute("previewMode", true);
-            return "new-application";
         }
 
-        if (!isApplicationPeriod) {
+        if (!isPreviewMode && !isApplicationPeriod) {
             model.addAttribute("showErrorPopup", true);
             model.addAttribute("errorMessage", "Başvurular şu anda kapalıdır. Lütfen belirlenen tarihlerde tekrar deneyin.");
             return "redirect:/dashboard";
+        }
+
+        //Öğrencinin bilgilerini alalım
+        EducationYear studentYear = student.getEducationYear();
+        double gpa = student.getGpa();
+
+        final EducationYear maxAllowedYear;
+        if (gpa >= 3.00) {
+            maxAllowedYear = EducationYear.values()[Math.min(studentYear.ordinal() + 1, EducationYear.values().length - 1)];
+        } else {
+            maxAllowedYear = studentYear;
+        }
+
+        List<HomeCourse> eligibleCourses = homeCourseRepo.findAll().stream()
+                .filter(course -> course.getEducationYear().ordinal() <= maxAllowedYear.ordinal())
+                .toList();
+
+        if (eligibleCourses.isEmpty()) {
+            model.addAttribute("errorMessage", "Seçebileceğiniz uygun ders bulunmamaktadır.");
+        } else {
+            model.addAttribute("homeCourses", eligibleCourses);
         }
 
         return "new-application";
     }
 
     @PostMapping("/step2")
-    public String proceedToNextStep(@RequestParam Long selectedCourseId, HttpSession session) {
+    public String proceedToNextStep(final @RequestParam Long selectedCourseId, final HttpSession session) {
         session.setAttribute("selectedHomeCourseId", selectedCourseId);
         return "redirect:/applications/new/2";
     }
 
     @GetMapping("/new/2")
-    public String showNewApplication2Page(HttpSession session, Model model) {
+    public String showNewApplication2Page(final HttpSession session, final Model model) {
         Long homeCourseId = (Long) session.getAttribute("selectedHomeCourseId");
 
         if (homeCourseId == null) {
@@ -88,12 +108,8 @@ public class ApplicationController {
 
     @GetMapping("/external-course-id")
     @ResponseBody
-    public Long getExternalCourseId(
-            @RequestParam String universityName,
-            @RequestParam String facultyName,
-            @RequestParam String departmentName,
-            @RequestParam String courseName
-    ) {
+    public Long getExternalCourseId(final @RequestParam String universityName, final @RequestParam String facultyName,
+                                    final @RequestParam String departmentName, final @RequestParam String courseName) {
         // 1. Adım: UniversityId'yi al
         Long universityId = universityRepo
                 .findByUniversityNameAndFacultyNameAndDepartmentName(universityName, facultyName, departmentName)
@@ -108,13 +124,13 @@ public class ApplicationController {
     }
 
     @PostMapping("/set-external-course")
-    public String setExternalCourseId(@RequestParam Long externalCourseId, HttpSession session) {
+    public String setExternalCourseId(final @RequestParam Long externalCourseId, final HttpSession session) {
         session.setAttribute("selectedExternalCourseId", externalCourseId);
         return "redirect:/applications/confirmation";
     }
 
     @GetMapping("/confirmation")
-    public String showConfirmationPage(HttpSession session, Model model) {
+    public String showConfirmationPage(final HttpSession session, final Model model) {
         // Session'dan ID'leri al
         Long homeCourseId = (Long) session.getAttribute("selectedHomeCourseId");
         Long externalCourseId = (Long) session.getAttribute("selectedExternalCourseId");
@@ -145,14 +161,9 @@ public class ApplicationController {
         return "confirmation";
     }
 
-
     @PostMapping("/submit")
-    public String submitApplication(
-            @RequestParam Long homeCourseId,
-            @RequestParam Long externalCourseId,
-            @RequestParam Long studentId,
-            Model model
-    ) {
+    public String submitApplication(final @RequestParam Long homeCourseId, final @RequestParam Long externalCourseId,
+                                    final @RequestParam Long studentId, final Model model) {
         // Veritabanından HomeCourse, ExternalCourse ve Student nesneleri alınıyor
         HomeCourse homeCourse = homeCourseRepo.findById(homeCourseId)
                 .orElseThrow(() -> new RuntimeException("HomeCourse bulunamadı."));
@@ -180,19 +191,15 @@ public class ApplicationController {
         application.setStudent(student);
         application.setStatus(ApplicationStatus.PENDING);
         application.setSubmissionDate(LocalDate.now());
-
         // Application'ı kaydeder
         applicationRepo.save(application);
 
-        // Model'e mesaj ekler
         model.addAttribute("message", "Başvuru başarıyla oluşturuldu!");
-
-        // Dashboard'a yönlendirir
         return "redirect:/dashboard";
     }
 
     @GetMapping("/my-applications")
-    public String getMyApplications(HttpSession session, Model model) {
+    public String getMyApplications(final HttpSession session, final Model model) {
         String studentNumber = (String) session.getAttribute("username");
 
         if (studentNumber == null) {
@@ -212,7 +219,7 @@ public class ApplicationController {
     }
 
     @GetMapping("/pending")
-    public String getPendingApplications(Model model) {
+    public String getPendingApplications(final Model model) {
         // PENDING statüsündeki başvuruları çek
         List<Application> pendingApplications = applicationRepo.findByStatus(ApplicationStatus.PENDING);
 
@@ -223,16 +230,15 @@ public class ApplicationController {
     }
 
     @GetMapping("/approved")
-    public String approvedApplications(Model model) {
+    public String approvedApplications(final Model model) {
         List<Application> approvedApplications = applicationRepo.findByStatus(ApplicationStatus.APPROVED);
         model.addAttribute("approvedApplications", approvedApplications);
         return "applicationPages/approved-applications";
     }
 
     @PostMapping("/approve/{id}")
-    public String approveApplication(@PathVariable Long id) {
-        Application application = applicationRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
+    public String approveApplication(final @PathVariable Long id) {
+        Application application = applicationRepo.findById(id).orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
 
         application.setStatus(ApplicationStatus.APPROVED);
         applicationRepo.save(application);
@@ -241,16 +247,15 @@ public class ApplicationController {
     }
 
     @GetMapping("/rejected")
-    public String rejectedApplications(Model model) {
+    public String rejectedApplications(final Model model) {
         List<Application> rejectedApplications = applicationRepo.findByStatus(ApplicationStatus.REJECTED);
         model.addAttribute("rejectedApplications", rejectedApplications);
         return "applicationPages/rejected-applications";
     }
 
     @PostMapping("/reject/{id}")
-    public String rejectApplication(@PathVariable Long id) {
-        Application application = applicationRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
+    public String rejectApplication(final @PathVariable Long id) {
+        Application application = applicationRepo.findById(id).orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
 
         application.setStatus(ApplicationStatus.REJECTED);
         applicationRepo.save(application);
@@ -259,9 +264,8 @@ public class ApplicationController {
     }
 
     @PostMapping("/reject-approved/{id}")
-    public String rejectApprovedApplication(@PathVariable Long id) {
-        Application application = applicationRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
+    public String rejectApprovedApplication(final @PathVariable Long id) {
+        Application application = applicationRepo.findById(id).orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
 
         if (application.getStatus() == ApplicationStatus.APPROVED) {
             application.setStatus(ApplicationStatus.REJECTED);
@@ -272,9 +276,8 @@ public class ApplicationController {
     }
 
     @PostMapping("/approve-rejected/{id}")
-    public String approveRejectedApplication(@PathVariable Long id) {
-        Application application = applicationRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
+    public String approveRejectedApplication(final @PathVariable Long id) {
+        Application application = applicationRepo.findById(id).orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
 
         // Eğer başvuru zaten REJECTED değilse işlem yapma
         if (application.getStatus() != ApplicationStatus.REJECTED) {
@@ -288,7 +291,7 @@ public class ApplicationController {
     }
 
     @PostMapping("/cancel/{id}")
-    public String cancelApplication(@PathVariable Long id, HttpSession session) {
+    public String cancelApplication(final @PathVariable Long id, final HttpSession session) {
         Application application = applicationRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Başvuru bulunamadı!"));
 
@@ -312,9 +315,8 @@ public class ApplicationController {
         return "redirect:/applications/my-applications";
     }
 
-    // Ayarlar Sayfası
     @GetMapping("/settings")
-    public String settings(Model model) {
+    public String settings(final Model model) {
         model.addAttribute("page", "settings");
         return "settings";
     }

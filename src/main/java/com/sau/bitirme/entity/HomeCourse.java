@@ -93,6 +93,5 @@ public class HomeCourse {
     public void setEducationYear(EducationYear educationYear) {
         this.educationYear = educationYear;
     }
-    // Getters and Setters
 }
 

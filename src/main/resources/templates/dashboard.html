@@ -2,6 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Dashboard</title>
+
+    <script th:inline="javascript">
+        var isPreviewMode = /*[[${isPreviewMode}]]*/ false;
+        var isApplicationPeriod = /*[[${isApplicationPeriod}]]*/ false;
+        console.log("Thymeleaf JS Bağlantı - isPreviewMode:", isPreviewMode);
+        console.log("Thymeleaf JS Bağlantı - isApplicationPeriod:", isApplicationPeriod);
+    </script>
     <style>
         .modal {
             display: none;
@@ -55,19 +62,16 @@
         .container {
             padding: 20px;
         }
-
-        .disabled-link {
-            pointer-events: none;
-            color: gray;
-            text-decoration: none;
-        }
     </style>
 </head>
 <body>
 
 <div class="navbar">
     <a href="/applications/new"
-       th:classappend="${(isPreviewMode != null ? isPreviewMode : false) or (isApplicationPeriod != null ? isApplicationPeriod : false) ? '' : 'disabled-link'}"
+       id="applyButton"
+       th:classappend="${isPreviewMode or isApplicationPeriod ? '' : 'disabled-link'}"
+       th:data-preview-mode="${isPreviewMode}"
+       th:data-application-period="${isApplicationPeriod}"
        onclick="return checkApplicationPeriod();">
         Başvuru Yap
     </a>
@@ -98,18 +102,22 @@
 
 <script>
     function checkApplicationPeriod() {
-        let isApplicationPeriod = /*[[${isApplicationPeriod != null ? isApplicationPeriod : false}]]*/ false;
-        let isPreviewMode = /*[[${isPreviewMode != null ? isPreviewMode : false}]]*/ false;
+        let applyButton = document.getElementById("applyButton");
 
-        console.log("isPreviewMode:", isPreviewMode); // Debug için
-        console.log("isApplicationPeriod:", isApplicationPeriod); // Debug için
+        // Thymeleaf tarafından set edilen değerleri al
+        let isPreviewMode = applyButton.getAttribute("data-preview-mode") === "true";
+        let isApplicationPeriod = applyButton.getAttribute("data-application-period") === "true";
 
-        if (!isApplicationPeriod && !isPreviewMode) {
-            document.getElementById("errorMessage").innerText = "Başvurular şu anda kapalıdır. Lütfen belirlenen tarihlerde tekrar deneyin.";
-            document.getElementById("errorPopup").style.display = "block";
-            return false;  // Başvuruyu engelle
+        console.log("Kontrol - isPreviewMode:", isPreviewMode);
+        console.log("Kontrol - isApplicationPeriod:", isApplicationPeriod);
+
+        if (isApplicationPeriod || isPreviewMode) {
+            return true;
         }
-        return true;  // Kullanıcı başvuruyu yapabilir
+
+        document.getElementById("errorMessage").innerText = "Başvurular şu anda kapalıdır. Lütfen belirlenen tarihlerde tekrar deneyin.";
+        document.getElementById("errorPopup").style.display = "block";
+        return false;
     }
 
     function closePopup() {

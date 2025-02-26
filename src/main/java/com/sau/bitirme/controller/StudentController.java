@@ -21,7 +21,7 @@ public class StudentController {
     private StudentRepo studentRepo;
 
     @GetMapping("/get-student-id")
-    public ResponseEntity<Long> getStudentId(HttpSession session) {
+    public ResponseEntity<Long> getStudentId(final HttpSession session) {
         Long studentId = (Long) session.getAttribute("studentId");
         if (studentId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -29,18 +29,14 @@ public class StudentController {
         return ResponseEntity.ok(studentId);
     }
 
-
-
-
-
     @GetMapping("/students/add")
-    public String showAddStudentForm(Model model) {
+    public String showAddStudentForm(final Model model) {
         model.addAttribute("student", new Student());
         return "add-student";
     }
 
     @PostMapping("/students/add")
-    public String addStudent(Student student) {
+    public String addStudent(final Student student) {
         studentRepo.save(student);
         return "redirect:/students/add";
     }
@@ -51,7 +47,7 @@ public class StudentController {
     }
 
     @PostMapping("/students/search")
-    public String searchStudent(@RequestParam("studentNumber") String studentNumber, Model model) {
+    public String searchStudent(final @RequestParam("studentNumber") String studentNumber, final Model model) {
         Student student = studentRepo.findByStudentNumber(studentNumber);
         if (student != null) {
             model.addAttribute("student", student);

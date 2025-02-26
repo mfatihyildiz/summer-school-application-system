@@ -13,12 +13,12 @@ public class CommitteeController {
     private CommitteeRepo committeeRepo;
 
     @PostMapping
-    public Committee createCommittee(@RequestBody Committee committee) {
+    public Committee createCommittee(final @RequestBody Committee committee) {
         return committeeRepo.save(committee);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCommittee(@PathVariable Long id) {
+    public void deleteCommittee(final @PathVariable Long id) {
         committeeRepo.deleteById(id);
     }
 
